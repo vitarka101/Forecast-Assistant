@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Retail Forecast Desk</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <main class="workspace">
+        <section class="chat-panel">
+          <div class="chat-header">
+            <div>
+              <h2>Ask The Forecast Assistant</h2>
+            </div>
+            <div class="header-tools">
+              <span class="status-dot" id="apiStatus">API</span>
+            </div>
+          </div>
+
+          <section id="promptSuggestions" class="prompt-suggestions">
+            <button
+              type="button"
+              class="prompt-card"
+              data-prompt="Forecast product 85123A for the next 4 weeks"
+            >
+              Forecast product 85123A
+            </button>
+            <button
+              type="button"
+              class="prompt-card"
+              data-prompt="Forecast product 22774 for the next 4 weeks"
+            >
+              Forecast product 22774
+            </button>
+            <button
+              type="button"
+              class="prompt-card"
+              data-prompt="Forecast customer 14606 for the next 4 weeks"
+            >
+              Forecast customer 14606
+            </button>
+            <button
+              type="button"
+              class="prompt-card"
+              data-prompt="Compare product 85123A vs product 85099B over the next 4 weeks"
+            >
+              Compare two products
+            </button>
+          </section>
+
+          <div id="chatFeed" class="chat-feed" aria-live="polite"></div>
+
+          <form id="chatForm" class="composer">
+            <label class="sr-only" for="queryInput">Forecast query</label>
+            <textarea
+              id="queryInput"
+              rows="3"
+              placeholder="Ask for a product or customer forecast, comparison, or alert."
+            ></textarea>
+            <div class="composer-actions">
+              <p class="composer-note">The LLM routes the request. Local cluster models produce the forecast.</p>
+              <button id="sendButton" type="submit">Send</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="insight-panel">
+          <div class="insight-header">
+            <h2>Forecast Context</h2>
+          </div>
+
+          <div id="emptyState" class="empty-state">
+            <p>Send a forecast request to see historical context, forecast cards, and the routed tool result.</p>
+          </div>
+
+          <div id="insightContent" class="insight-content hidden">
+            <section class="summary-strip">
+              <article class="stat-card">
+                <p>Intent</p>
+                <strong id="intentValue">-</strong>
+              </article>
+              <article class="stat-card">
+                <p>Tool</p>
+                <strong id="toolValue">-</strong>
+              </article>
+            </section>
+
+            <section class="panel insight-summary">
+              <p class="panel-label">Assistant Summary</p>
+              <p id="assistantSummary" class="summary-text"></p>
+            </section>
+
+            <section id="forecastView" class="hidden">
+              <div class="panel-grid">
+                <article class="panel">
+                  <p class="panel-label">Entity</p>
+                  <h3 id="entityTitle">-</h3>
+                  <p id="entityMicro" class="entity-micro hidden"></p>
+                  <p id="clusterText" class="muted"></p>
+                </article>
+                <article class="panel">
+                  <p class="panel-label">Historical Anchor</p>
+                  <div class="metric-pair">
+                    <span>Recent 12-week average</span>
+                    <strong id="baselineValue">-</strong>
+                  </div>
+                  <div class="metric-pair">
+                    <span>First week change</span>
+                    <strong id="changeValue">-</strong>
+                  </div>
+                </article>
+                <article class="panel">
+                  <p class="panel-label">Forecast Total</p>
+                  <h3 id="totalForecastValue">-</h3>
+                </article>
+              </div>
+
+              <article class="panel chart-panel">
+                <div class="chart-header">
+                  <p class="panel-label">Actuals + Forecast</p>
+                  <div class="chip-row">
+                    <span id="historyWindowChip" class="small-chip"></span>
+                  </div>
+                </div>
+                <svg id="forecastChart" viewBox="0 0 640 260" role="img" aria-label="Forecast chart"></svg>
+                <div id="chartTooltip" class="chart-tooltip hidden" aria-hidden="true"></div>
+              </article>
+
+              <article class="panel">
+                <div class="chart-header">
+                  <p class="panel-label">Recent Timeline</p>
+                  <span id="timelineChip" class="small-chip"></span>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Week</th>
+                        <th>Source</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody id="timelineTableBody"></tbody>
+                  </table>
+                </div>
+              </article>
+
+              <article id="historyPanel" class="panel hidden">
+                <p class="panel-label">History Note</p>
+                <p id="historySummary"></p>
+              </article>
+
+              <article id="qualityPanel" class="panel hidden">
+                <p class="panel-label">Data Quality Note</p>
+                <p id="qualitySummary"></p>
+              </article>
+            </section>
+
+            <section id="compareView" class="hidden">
+              <article class="panel">
+                <p class="panel-label">Comparison Summary</p>
+                <p id="comparisonSummary"></p>
+              </article>
+              <div id="comparisonCards" class="comparison-cards"></div>
+            </section>
+
+            <section id="alertsView" class="hidden">
+              <article class="panel">
+                <p class="panel-label">Alert Summary</p>
+                <p id="alertSummary"></p>
+              </article>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Entity</th>
+                      <th>Cluster</th>
+                      <th>Recent Avg</th>
+                      <th>Forecast Avg</th>
+                      <th>Decline %</th>
+                    </tr>
+                  </thead>
+                  <tbody id="alertsTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
