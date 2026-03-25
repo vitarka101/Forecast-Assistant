@@ -457,6 +457,33 @@ docker compose up -d --build api
 docker compose down
 ```
 
+### Run a pre-trained copy directly
+
+If someone has shared this project with a database dump and the `artifacts/` folder already included, they can run it without retraining.
+
+Expected files in the project root:
+
+- `retail_router_dump.sql`
+- `artifacts/product_weekly_metrics.csv`
+- `artifacts/customer_weekly_metrics.csv`
+- `artifacts/models/...`
+
+Steps:
+
+```bash
+docker compose down -v
+docker compose up -d db
+docker compose exec -T db psql -U retail -d retail_router < retail_router_dump.sql
+docker compose up -d --build api
+```
+
+Then open:
+
+- `http://localhost:8001/`
+- `http://localhost:8001/docs`
+
+Do not run the training endpoint again unless you intentionally want to overwrite the shared trained state.
+
 ### Option 2: Local Python
 
 ### Prerequisites
@@ -571,6 +598,70 @@ Use:
 LLM_PROVIDER=ollama
 LLM_MODEL=llama3.1:8b
 OLLAMA_BASE_URL=http://localhost:11434
+```
+
+## Sharing A Pre-Trained Copy
+
+If you want to send this project to someone else so they can run it immediately without training, you must send both:
+
+1. the project files, including `artifacts/`
+2. a PostgreSQL dump
+
+### On the source machine
+
+From the project root:
+
+```bash
+cd /Users/ayushkumar/Desktop/Columbia/Forecasting/Project/Retail/Deliverable_2
+docker compose exec -T db pg_dump -U retail -d retail_router > retail_router_dump.sql
+```
+
+This creates:
+
+- [`retail_router_dump.sql`](./retail_router_dump.sql)
+
+Keep that file in the project root, next to:
+
+- [`docker-compose.yml`](./docker-compose.yml)
+- [`README.md`](./README.md)
+- [`online_retail.xlsx`](./online_retail.xlsx)
+
+Then zip the entire folder, making sure these are included:
+
+- `retail_router_dump.sql`
+- `artifacts/`
+- `online_retail.xlsx`
+- source code and config files
+
+### On the destination machine
+
+After unzipping:
+
+```bash
+cd Deliverable_2
+docker compose down -v
+docker compose up -d db
+docker compose exec -T db psql -U retail -d retail_router < retail_router_dump.sql
+docker compose up -d --build api
+```
+
+Then verify:
+
+```bash
+curl http://localhost:8001/health
+```
+
+And test one known forecast:
+
+```bash
+curl -X POST http://localhost:8001/api/v1/forecasts/entity \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entity_type": "product",
+    "entity_id": "85123A",
+    "horizon_weeks": 4,
+    "target_metric": "revenue"
+  }'
 ```
 
 ## Training Pipeline Details
