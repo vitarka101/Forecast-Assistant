@@ -22,11 +22,11 @@ You can ask questions like:
 
 The system then:
 
-1. identifies whether the request is about a product or a customer
-2. maps the entity to a cluster
-3. loads that cluster's trained model
-4. generates a forecast from historical weekly data
-5. returns both structured output and a human-readable summary
+1. Identifies whether the request is about a product or a customer
+2. Maps the entity to a cluster
+3. Loads that cluster's trained model
+4. Generates a forecast from historical weekly data
+5. Returns both structured output and a human-readable summary
 
 ## Current Architecture
 
